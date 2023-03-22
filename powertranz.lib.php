@@ -12,6 +12,7 @@ class PowerTranz {
     protected $orderNumberAutoGen = false;
     protected $transactionNumberAutoGen = true;
     protected $use3DS = true;
+    protected $fraudCheck = false;
 
     protected $platformPWTUAT = 'https://staging.ptranz.com/api/spi/';
     protected $platformPWTPROD = 'https://tbd.ptranz.com/api/spi/';
@@ -78,6 +79,16 @@ class PowerTranz {
     public function set3DSMode($mode = true)
     {
         self::$use3DS = $mode;
+    }
+
+    /**
+     * Set Fraud Check Mode
+     * 
+     * @param boolean $mode
+     */
+    public function setFraudCheckMode($mode = true)
+    {
+        self::$fraudCheck = $mode;
     }
 
     public function getEndpoint()
@@ -418,6 +429,7 @@ class PowerTranz {
             'TotalAmount' => $data['amount'] ?? 0,
             'CurrencyCode' => $data['currency'] ?? self::DEFAULT_TRANSACTION_CURRENCY,
             'ThreeDSecure' => self::$use3DS,
+            'FraudCheck' => self::$fraudCheck,
             'Source' => [],
             'OrderIdentifier' => self::getOrderNumber(),
             'BillingAddress' => [
