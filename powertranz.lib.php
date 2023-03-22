@@ -333,6 +333,26 @@ class PowerTranz {
     }
 
     /**
+     * Refund Transaction
+     * 
+     * @param array $transactionData
+     * 
+     * @return PowerTranzResponse
+     */
+    public function refund($transactionData)
+    {
+        self::$transactionData = [
+            'TransactionIdentifier' => $transactionData['transactionNumber'],
+            'Refund' => true,
+            'TotalAmount' => $transactionData['amount'] ?? 0,
+        ];
+
+        $response = $this->curl(self::$transactionData, 'refund');
+
+        return new PowerTranzResponse( $response );
+    }
+
+    /**
      * Set transactionData variable
      * 
      * @param array $data
