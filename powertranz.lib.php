@@ -619,6 +619,13 @@ class CreditCard
 		return $newCreditCard;
 	}
 
+    /**
+     * Remove all non numeric characters from a credit card number
+     * 
+     * @param int|string $cc
+     * 
+     * @return int
+     */
     public static function number( $cc )
     {
         // remove all non-numeric characters
