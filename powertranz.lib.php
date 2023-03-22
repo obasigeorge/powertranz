@@ -279,6 +279,37 @@ class PowerTranz {
     }
 
     /**
+     * Tokenize a Card Pan
+     * 
+     * @param array $transactiondata
+     * 
+     * @return PowerTranzResponse
+     */
+    public function tokenize($transactionData)
+    {
+        $expiry = sprintf('%02d%02d', (strlen($transactionData['expiryYear']) == 4) ? substr($transactionData['expiryYear'], 2, 2) : $transactionData['expiryYear'], $transactionData['expiryMonth']);
+        $holder = sprintf('%s %s', $transactionData['firstName'], $transactionData['LastName']);
+
+        self::$transactionData = [
+            'TotalAmount' => 0,
+            'CurrencyCode' => $transactionData['currency'] ?? self::DEFAULT_TRANSACTION_CURRENCY,
+            'Tokenize' => true,
+            'ThreeDSecure' => false,
+            'Source' => [
+                'CardPan' => CreditCard::number($transactionData['number']),
+                'CardCvv' => $transactionData['cvv'],
+                'CardExpiration' => $expiry,
+                'CardholderName' => $holder,
+            ],
+            'OrderIdentifier' => self::getOrderNumber(),
+        ];
+
+        $response = $this->curl(self::$transactionData, 'RiskMgmt');
+
+        return new PowerTranzResponse( $response );
+    }
+
+    /**
      * Void Transaction
      * 
      * @param string $transactionNumber
