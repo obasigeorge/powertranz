@@ -291,6 +291,7 @@ class PowerTranz {
         $holder = sprintf('%s %s', $transactionData['firstName'], $transactionData['LastName']);
 
         self::$transactionData = [
+            'TransactionIdentifier' => self::getTransactionNumber(),
             'TotalAmount' => 0,
             'CurrencyCode' => $transactionData['currency'] ?? self::DEFAULT_TRANSACTION_CURRENCY,
             'Tokenize' => true,
