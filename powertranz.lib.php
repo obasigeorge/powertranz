@@ -311,6 +311,8 @@ class PowerTranz {
      */
     public function acceptNotification($data)
     {
+        // to-do
+        // validate data response from callback
         return new PowerTranzResponse( $data );
     }
 
