@@ -101,7 +101,7 @@ class PowerTranz {
      * 
      * @param string $url
      */
-    public function setMerchantURL($url)
+    public function setMerchantResponseURL($url)
     {
         self::$merchantResponseURL = $url;
     }
@@ -111,7 +111,7 @@ class PowerTranz {
      * 
      * @return string
      */
-    public function getMerchantURL()
+    public function getMerchantResponseURL()
     {
         return self::$merchantResponseURL;
     }
@@ -448,7 +448,7 @@ class PowerTranz {
             ],
             'AddressMatch' => $data['AddressMatch'] ?? false, 
             'ExtendedData' => [
-                'MerchantResponseUrl' => self::getMerchantURL(),
+                'MerchantResponseUrl' => self::getMerchantResponseURL(),
             ],
         ];
     }
