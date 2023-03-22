@@ -180,6 +180,32 @@ class PowerTranz {
     }
 
     /**
+     * 
+     * 
+     * @param array $transactionData
+     * 
+     * @return PowerTranzResponse
+     */
+    public function authorize($transactionData)
+    {
+        self::setData($transactionData);
+
+        $expiry = sprintf('%2d-%2d', (strlen($transactionData['expiryYear']) == 4) ? substr($transactionData['expiryYear'], 2, 2) : $transactionData['expiryYear'], $transactionData['expiryMonth']);
+        $holder = sprintf('%s %s', $transactionData['firstName'], $transactionData['LastName']);
+
+        self::$transactionData['Source'] = [
+            'CardPan' => CreditCard::number($transactionData['number']),
+            'CardCvv' => $transactionData['cvv'],
+            'CardExpiration' => $expiry,
+            'CardholderName' => $holder,
+        ];
+
+        $response = self::curl(self::$transactionData);
+
+        return new PowerTranzResponse( $response );
+    }
+
+    /**
      * Get Hosted Page
      * 
      * @param array $transactionData,
@@ -190,33 +216,11 @@ class PowerTranz {
      */
     public function getHostedPage($transactionData, $pageSet, $pageName)
     {
-        self::$transactionData = [
-            'TransactionIdentifier' => self::getTransactionNumber(),
-            'TotalAmount' => $transactionData['amount'] ?? 0,
-            'CurrencyCode' => $transactionData['currency'] ?? self::DEFAULT_TRANSACTION_CURRENCY,
-            'ThreeDSecure' => (self::$use3DS) ? 'true' : 'false',
-            'Source' => [],
-            'OrderIdentifier' => self::getOrderNumber(),
-            'BillingAddress' => [
-                'FirstName' => $transactionData['firstName'] ?? '',
-                'LastName' => $transactionData['LastName'] ?? '',
-                'Line1' => $transactionData['Address1'] ?? '',
-                'Line2' => $transactionData['Address2'] ?? '',
-                'City' => $transactionData['City'] ?? '',
-                'State' => $transactionData['State'] ?? '',
-                'PostalCode' => $transactionData['Postcode'] ?? '',
-                'CountryCode' => $transactionData['Country'] ?? '',
-                'EmailAddress' => $transactionData['email'] ?? '',
-                'PhoneNumber' => $transactionData['Phone'] ?? '',
-            ],
-            'AddressMatch' => $transactionData['AddressMatch'] ?? true, 
-            'ExtendedData' => [
-                'MerchantResponseUrl' => self::$merchantResponseURL ?? '',
-                'HostedPage' => [
-                    'PageSet' => $pageSet,
-                    'PageName' => $pageName,
-                ],
-            ],
+        self::setData($transactionData);
+
+        self::$transactionData['ExtendedData']['HostedPage'] = [
+            'PageSet' => $pageSet,
+            'PageName' => $pageName,
         ];
 
         $response = self::curl(self::$transactionData);
@@ -268,6 +272,39 @@ class PowerTranz {
         return new PowerTranzResponse( $response );
     }
 
+    /**
+     * Set transactionData variable
+     * 
+     * @param array $data
+     */
+    private function setData( $data )
+    {
+        self::$transactionData = [
+            'TransactionIdentifier' => self::getTransactionNumber(),
+            'TotalAmount' => $data['amount'] ?? 0,
+            'CurrencyCode' => $data['currency'] ?? self::DEFAULT_TRANSACTION_CURRENCY,
+            'ThreeDSecure' => (self::$use3DS) ? 'true' : 'false',
+            'Source' => [],
+            'OrderIdentifier' => self::getOrderNumber(),
+            'BillingAddress' => [
+                'FirstName' => $data['firstName'] ?? '',
+                'LastName' => $data['LastName'] ?? '',
+                'Line1' => $data['Address1'] ?? '',
+                'Line2' => $data['Address2'] ?? '',
+                'City' => $data['City'] ?? '',
+                'State' => $data['State'] ?? '',
+                'PostalCode' => $data['Postcode'] ?? '',
+                'CountryCode' => $data['Country'] ?? '',
+                'EmailAddress' => $data['email'] ?? '',
+                'PhoneNumber' => $data['Phone'] ?? '',
+            ],
+            'AddressMatch' => $data['AddressMatch'] ?? true, 
+            'ExtendedData' => [
+                'MerchantResponseUrl' => self::$merchantResponseURL ?? '',
+            ],
+        ];
+    }
+
     /** 
      * curl function
      * 
@@ -276,7 +313,7 @@ class PowerTranz {
      * 
      * @return array
     */
-	private static function curl( $data, $api = '' )
+	private function curl( $data, $api = '' )
 	{
         $postData = (is_array($data)) ? json_encode($data) : $data;
 		
@@ -500,4 +537,13 @@ class CreditCard
 		// Return the formatted credit card number
 		return $newCreditCard;
 	}
+
+    public static function number( $cc )
+    {
+        // remove all non-numeric characters
+        preg_match_all('/([0-9])/', $cc, $matches);
+
+        // Return number 
+        return implode('', $matches[1]);
+    }
 }
