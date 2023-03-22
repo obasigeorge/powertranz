@@ -13,6 +13,11 @@ try {
         // *** Autogen an order number  UUID V4
         ->setOrderNumberAutoGen(true);
 
+        // Set Order Number Prefix - Default PWT
+        // ->setOderNumberPrefix('some-string-of-chars')
+        // Set Order Number
+        // ->setOrderNumber('some-string-of-chars')
+
     $cardData = [
         'number' => '4111111111111111', //Mandatory
         'expiryMonth' => '01', //Mandatory
@@ -26,7 +31,7 @@ try {
         'City' => 'Marabella', // Mandatory
         'State' => '',   //Mandatory
         'Postcode' => '',  //Optional
-        'Country' => '780',   //Mandatory GTQ
+        'Country' => '780',   //Mandatory 780
         'Phone' => '',  // Optional
     ];
 
@@ -34,11 +39,11 @@ try {
         'card' => $cardData,
         'currency' => '780',  // Mandatory  780
         'amount' => '1.00',   // Mandatory
-        ///'TransactionId' => '2100001',  // is mandatory is setOrderNumberAutoGen is false
         "AddressMatch" => "false"   //Optional  
     ];
 
     $response = $gateway->authorize($transactionData);
+    // $response = $gateway->getHostedPage($transactionData);
 
     if($response->isRedirect())
     {
