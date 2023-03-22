@@ -19,10 +19,10 @@ try {
         // ->setOrderNumber('some-string-of-chars')
 
     $cardData = [
-        'number' => '4111111111111111', //Mandatory
-        'expiryMonth' => '01', //Mandatory
-        'expiryYear' => '2025',  ///Mandatory
-        'cvv' => '123',   //Mandatory
+        'number' => '4111111111111111', //Optional
+        'expiryMonth' => '01', //Optional
+        'expiryYear' => '2025',  ///Optional
+        'cvv' => '123',   //Optional
         'firstName' => 'Jonh', //Mandatory
         'LastName' => 'Doe',   //Mandatory
         'email' => "johDoe@gmail.com", //optional
