@@ -393,7 +393,7 @@ class PowerTranz {
      * 
      * @return array
     */
-	private function curl( $data, $api = '' )
+	private function curl( $data, $api )
 	{
         $postData = (is_array($data)) ? json_encode($data) : $data;
 		
