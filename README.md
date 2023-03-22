@@ -43,7 +43,7 @@ try {
     ];
 
     $response = $gateway->authorize($transactionData);
-    // $response = $gateway->getHostedPage($transactionData);
+    // $response = $gateway->getHostedPage($transactionData, $pageSet, $pageName);
 
     if($response->isRedirect())
     {
