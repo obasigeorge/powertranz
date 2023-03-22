@@ -190,7 +190,7 @@ class PowerTranz {
     {
         self::setData($transactionData);
 
-        $expiry = sprintf('%2d-%2d', (strlen($transactionData['expiryYear']) == 4) ? substr($transactionData['expiryYear'], 2, 2) : $transactionData['expiryYear'], $transactionData['expiryMonth']);
+        $expiry = sprintf('%02d%02d', (strlen($transactionData['expiryYear']) == 4) ? substr($transactionData['expiryYear'], 2, 2) : $transactionData['expiryYear'], $transactionData['expiryMonth']);
         $holder = sprintf('%s %s', $transactionData['firstName'], $transactionData['LastName']);
 
         self::$transactionData['Source'] = [
@@ -200,7 +200,35 @@ class PowerTranz {
             'CardholderName' => $holder,
         ];
 
-        $response = self::curl(self::$transactionData);
+        $response = self::curl(self::$transactionData, 'auth');
+
+        return new PowerTranzResponse( $response );
+    }
+
+    /**
+     * 
+     * 
+     * @param array $transactionData
+     * 
+     * @return PowerTranzResponse
+     */
+    public function authorizeWithToken($transactionData)
+    {
+        self::setData($transactionData);
+
+        $expiry = sprintf('%02d%02d', (strlen($transactionData['expiryYear']) == 4) ? substr($transactionData['expiryYear'], 2, 2) : $transactionData['expiryYear'], $transactionData['expiryMonth']);
+        $holder = sprintf('%s %s', $transactionData['firstName'], $transactionData['LastName']);
+
+        self::$transactionData['Tokenize'] = true;
+
+        self::$transactionData['Source'] = [
+            'Token' => CreditCard::number($transactionData['number']),
+            'CardCvv' => $transactionData['cvv'],
+            'CardExpiration' => $expiry,
+            'CardholderName' => $holder,
+        ];
+
+        $response = self::curl(self::$transactionData, 'auth');
 
         return new PowerTranzResponse( $response );
     }
@@ -223,7 +251,7 @@ class PowerTranz {
             'PageName' => $pageName,
         ];
 
-        $response = self::curl(self::$transactionData);
+        $response = self::curl(self::$transactionData, 'auth');
 
         return new PowerTranzResponse( $response );
     }
@@ -283,7 +311,7 @@ class PowerTranz {
             'TransactionIdentifier' => self::getTransactionNumber(),
             'TotalAmount' => $data['amount'] ?? 0,
             'CurrencyCode' => $data['currency'] ?? self::DEFAULT_TRANSACTION_CURRENCY,
-            'ThreeDSecure' => (self::$use3DS) ? 'true' : 'false',
+            'ThreeDSecure' => self::$use3DS,
             'Source' => [],
             'OrderIdentifier' => self::getOrderNumber(),
             'BillingAddress' => [
@@ -298,7 +326,7 @@ class PowerTranz {
                 'EmailAddress' => $data['email'] ?? '',
                 'PhoneNumber' => $data['Phone'] ?? '',
             ],
-            'AddressMatch' => $data['AddressMatch'] ?? true, 
+            'AddressMatch' => $data['AddressMatch'] ?? false, 
             'ExtendedData' => [
                 'MerchantResponseUrl' => self::$merchantResponseURL ?? '',
             ],
@@ -328,11 +356,12 @@ class PowerTranz {
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
 
         // Set HTTP Header for POST request 
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json; charset=utf-8',
             'Content-Length: ' . strlen($postData),
             'PowerTranz-PowerTranzId: ' . self::getPWTId(),
-            'PowerTranz-PowerTranzPassword: ' . self::getPWTPwd())
+            'PowerTranz-PowerTranzPassword: ' . self::getPWTPwd(),
+            ]
         );
 
         try {
