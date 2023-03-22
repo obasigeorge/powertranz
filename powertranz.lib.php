@@ -19,7 +19,9 @@ class PowerTranz {
 
     protected $transactionData = [];
     protected $orderNumber = "orderNumber";
+    protected $orderNumberSet = false;
     protected $transactionNumber = "transactionNumber";
+    protected $transactionNumberSet = false;
     protected $orderNumberPrefix = "PWT";
 
     const DEFAULT_TRANSACTION_CURRENCY = "780";
@@ -159,8 +161,8 @@ class PowerTranz {
      */
     public function getOrderNumber()
     {
-        if (self::$orderNumberAutoGen)
-            self::$orderNumber = "{$this->getOrderNumberPrefix()}{$this->guidv4()}";
+        if (self::$orderNumberAutoGen && !self::$orderNumberSet)
+            self::setOrderNumber ("{$this->getOrderNumberPrefix()}{$this->guidv4()}");
 
         return self::$orderNumber;
     }
@@ -185,6 +187,7 @@ class PowerTranz {
     public function setTransactionNumber($num) 
     {
         self::$transactionNumber = $num;
+        self::$transactionNumberSet = true;
     }
 
     /**
@@ -194,8 +197,8 @@ class PowerTranz {
      */
     public function getTransactionNumber()
     {
-        if (self::$transactionNumberAutoGen)
-            self::$transactionNumber = "{$this->guidv4()}";
+        if (self::$transactionNumberAutoGen && !self::$transactionNumberSet)
+            self::setTransactionNumber("{$this->guidv4()}");
         
         return  self::$transactionNumber;
     }
