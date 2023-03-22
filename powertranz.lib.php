@@ -96,6 +96,16 @@ class PowerTranz {
     }
 
     /**
+     * Get Merchant Callback URL
+     * 
+     * @return string
+     */
+    public function getMerchantURL()
+    {
+        return self::$merchantResponseURL;
+    }
+
+    /**
      * Set OrderNumber Auto Generation Mode
      * 
      * @param boolean $auto
@@ -319,22 +329,18 @@ class PowerTranz {
         $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
         $holder = sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
 
-        self::$transactionData = [
-            'TransactionIdentifier' => self::getTransactionNumber(),
-            'TotalAmount' => 0,
-            'CurrencyCode' => $transactionData['currency'] ?? self::DEFAULT_TRANSACTION_CURRENCY,
-            'Tokenize' => true,
-            'ThreeDSecure' => false,
-            'Source' => [
-                'CardPan' => CreditCard::number($transactionData['card']['number']),
-                'CardCvv' => $transactionData['card']['cvv'],
-                'CardExpiration' => $expiry,
-                'CardholderName' => $holder,
-            ],
-            'OrderIdentifier' => self::getOrderNumber(),
+        self::setData($transactionData);
+
+        self::$transactionData['Tokenize'] = true;
+        self::$transactionData['ThreeDSecure'] = false;
+        self::$transactionData['Source'] = [
+            'CardPan' => CreditCard::number($transactionData['card']['number']),
+            'CardCvv' => $transactionData['card']['cvv'],
+            'CardExpiration' => $expiry,
+            'CardholderName' => $holder,
         ];
 
-        $response = $this->curl(self::$transactionData, 'RiskMgmt');
+        $response = $this->curl(self::$transactionData, 'riskmgmt');
 
         return new PowerTranzResponse( $response );
     }
@@ -409,7 +415,7 @@ class PowerTranz {
             ],
             'AddressMatch' => $data['AddressMatch'] ?? false, 
             'ExtendedData' => [
-                'MerchantResponseUrl' => self::$merchantResponseURL ?? '',
+                'MerchantResponseUrl' => self::getMerchantURL(),
             ],
         ];
     }
