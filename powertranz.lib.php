@@ -209,7 +209,7 @@ class PowerTranz {
                 'EmailAddress' => $transactionData['email'] ?? '',
                 'PhoneNumber' => $transactionData['Phone'] ?? '',
             ],
-            'AddressMatch' => true,
+            'AddressMatch' => $transactionData['AddressMatch'] ?? true, 
             'ExtendedData' => [
                 'MerchantResponseUrl' => self::$merchantResponseURL ?? '',
                 'HostedPage' => [
@@ -342,57 +342,6 @@ class PowerTranz {
         // Output the 36 character UUID.
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
-
-
-	/**
-	 * Replaces all but the first and last four digits with x's in the given credit card number
-	 *
-	 * @param int|string $cc The credit card number to mask
-     * 
-	 * @return string The masked credit card number
-	 */
-	public static function maskCreditCard( $cc )
-	{
-		// replace all digits with X except for the first and last four.
-		$cc = preg_replace('/(?!^.?)[0-9](?!(.){0,3}$)/', 'X', $cc);
-		
-		// Return the masked Credit Card #
-		return $cc;
-	}
-
-	/**
-	 * Add dashes to a credit card number.
-	 *
-	 * @param int|string $cc The credit card number to format with dashes.
-     * 
-	 * @return string The credit card with dashes.
-	 */
-	public static function formatCreditCard( $cc )
-	{
-		// Clean out extra data that might be in the cc
-		$cc = str_replace(array('-',' '),'',$cc);
-
-		// Get the CC Length
-		$cc_length = strlen($cc);
-
-		// Initialize the new credit card to contian the last four digits
-		$newCreditCard = substr($cc,-4);
-
-		// Walk backwards through the credit card number and add a dash after every fourth digit
-		for ($i=$cc_length-5; $i>=0; $i--)
-        {
-			// If on the fourth character add a dash
-			if((($i+1)-$cc_length)%4 == 0){
-				$newCreditCard = '-'.$newCreditCard;
-			}
-			// Add the current character to the new credit card
-			$newCreditCard = $cc[$i].$newCreditCard;
-		}
-
-		// Return the formatted credit card number
-		return $newCreditCard;
-	}
-
 }
 
 class PowerTranzResponse {
@@ -498,4 +447,57 @@ class PowerTranzResponse {
     {
         return (intval(self::$transactionData['ResponseCode']) === 1) ? true : false;
     }
+}
+
+
+class CreditCard 
+{
+	/**
+	 * Replaces all but the first and last four digits with x's in the given credit card number
+	 *
+	 * @param int|string $cc The credit card number to mask
+     * 
+	 * @return string The masked credit card number
+	 */
+	public static function mask( $cc )
+	{
+		// replace all digits with X except for the first and last four.
+		$cc = preg_replace('/(?!^.?)[0-9](?!(.){0,3}$)/', 'X', $cc);
+		
+		// Return the masked Credit Card #
+		return $cc;
+	}
+
+	/**
+	 * Add dashes to a credit card number.
+	 *
+	 * @param int|string $cc The credit card number to format with dashes.
+     * 
+	 * @return string The credit card with dashes.
+	 */
+	public static function format( $cc )
+	{
+		// Clean out extra data that might be in the cc
+		$cc = str_replace(array('-',' '),'',$cc);
+
+		// Get the CC Length
+		$cc_length = strlen($cc);
+
+		// Initialize the new credit card to contian the last four digits
+		$newCreditCard = substr($cc,-4);
+
+		// Walk backwards through the credit card number and add a dash after every fourth digit
+		for ($i=$cc_length-5; $i>=0; $i--)
+        {
+			// If on the fourth character add a dash
+			if((($i+1)-$cc_length)%4 == 0){
+				$newCreditCard = '-'.$newCreditCard;
+			}
+			// Add the current character to the new credit card
+			$newCreditCard = $cc[$i].$newCreditCard;
+		}
+
+		// Return the formatted credit card number
+		return $newCreditCard;
+	}
 }
