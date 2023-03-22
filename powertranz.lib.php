@@ -180,7 +180,7 @@ class PowerTranz {
     }
 
     /**
-     * 
+     * Authorization Request using Full Card Pan
      * 
      * @param array $transactionData
      * 
@@ -190,12 +190,12 @@ class PowerTranz {
     {
         self::setData($transactionData);
 
-        $expiry = sprintf('%02d%02d', (strlen($transactionData['expiryYear']) == 4) ? substr($transactionData['expiryYear'], 2, 2) : $transactionData['expiryYear'], $transactionData['expiryMonth']);
-        $holder = sprintf('%s %s', $transactionData['firstName'], $transactionData['LastName']);
+        $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
+        $holder = sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
 
         self::$transactionData['Source'] = [
-            'CardPan' => CreditCard::number($transactionData['number']),
-            'CardCvv' => $transactionData['cvv'],
+            'CardPan' => CreditCard::number($transactionData['card']['number']),
+            'CardCvv' => $transactionData['card']['cvv'],
             'CardExpiration' => $expiry,
             'CardholderName' => $holder,
         ];
@@ -206,7 +206,7 @@ class PowerTranz {
     }
 
     /**
-     * 
+     * Authorization Request using PowerTranz Token
      * 
      * @param array $transactionData
      * 
@@ -216,14 +216,43 @@ class PowerTranz {
     {
         self::setData($transactionData);
 
-        $expiry = sprintf('%02d%02d', (strlen($transactionData['expiryYear']) == 4) ? substr($transactionData['expiryYear'], 2, 2) : $transactionData['expiryYear'], $transactionData['expiryMonth']);
-        $holder = sprintf('%s %s', $transactionData['firstName'], $transactionData['LastName']);
+        $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
+        $holder = sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
 
         self::$transactionData['Tokenize'] = true;
 
         self::$transactionData['Source'] = [
-            'Token' => CreditCard::number($transactionData['number']),
-            'CardCvv' => $transactionData['cvv'],
+            'Token' => $transactionData['card']['number'],
+            'CardCvv' => $transactionData['card']['cvv'],
+            'CardExpiration' => $expiry,
+            'CardholderName' => $holder,
+        ];
+
+        $response = self::curl(self::$transactionData, 'auth');
+
+        return new PowerTranzResponse( $response );
+    }
+
+    /**
+     * Authorization Request using Sentry Token
+     * 
+     * @param array $transactionData
+     * 
+     * @return PowerTranzResponse
+     */
+    public function authorizeWithSentryToken($transactionData)
+    {
+        self::setData($transactionData);
+
+        $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
+        $holder = sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
+
+        self::$transactionData['Tokenize'] = true;
+
+        self::$transactionData['Source'] = [
+            'Token' => $transactionData['card']['number'],
+            'TokenType' => 'PG2',
+            'CardCvv' => $transactionData['card']['cvv'],
             'CardExpiration' => $expiry,
             'CardholderName' => $holder,
         ];
@@ -287,8 +316,8 @@ class PowerTranz {
      */
     public function tokenize($transactionData)
     {
-        $expiry = sprintf('%02d%02d', (strlen($transactionData['expiryYear']) == 4) ? substr($transactionData['expiryYear'], 2, 2) : $transactionData['expiryYear'], $transactionData['expiryMonth']);
-        $holder = sprintf('%s %s', $transactionData['firstName'], $transactionData['LastName']);
+        $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
+        $holder = sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
 
         self::$transactionData = [
             'TransactionIdentifier' => self::getTransactionNumber(),
@@ -297,8 +326,8 @@ class PowerTranz {
             'Tokenize' => true,
             'ThreeDSecure' => false,
             'Source' => [
-                'CardPan' => CreditCard::number($transactionData['number']),
-                'CardCvv' => $transactionData['cvv'],
+                'CardPan' => CreditCard::number($transactionData['card']['number']),
+                'CardCvv' => $transactionData['card']['cvv'],
                 'CardExpiration' => $expiry,
                 'CardholderName' => $holder,
             ],
@@ -367,16 +396,16 @@ class PowerTranz {
             'Source' => [],
             'OrderIdentifier' => self::getOrderNumber(),
             'BillingAddress' => [
-                'FirstName' => $data['firstName'] ?? '',
-                'LastName' => $data['LastName'] ?? '',
-                'Line1' => $data['Address1'] ?? '',
-                'Line2' => $data['Address2'] ?? '',
-                'City' => $data['City'] ?? '',
-                'State' => $data['State'] ?? '',
-                'PostalCode' => $data['Postcode'] ?? '',
-                'CountryCode' => $data['Country'] ?? '',
-                'EmailAddress' => $data['email'] ?? '',
-                'PhoneNumber' => $data['Phone'] ?? '',
+                'FirstName' => $data['card']['firstName'] ?? '',
+                'LastName' => $data['card']['LastName'] ?? '',
+                'Line1' => $data['card']['Address1'] ?? '',
+                'Line2' => $data['card']['Address2'] ?? '',
+                'City' => $data['card']['City'] ?? '',
+                'State' => $data['card']['State'] ?? '',
+                'PostalCode' => $data['card']['Postcode'] ?? '',
+                'CountryCode' => $data['card']['Country'] ?? '',
+                'EmailAddress' => $data['card']['email'] ?? '',
+                'PhoneNumber' => $data['card']['Phone'] ?? '',
             ],
             'AddressMatch' => $data['AddressMatch'] ?? false, 
             'ExtendedData' => [
