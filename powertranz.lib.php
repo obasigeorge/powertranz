@@ -459,10 +459,10 @@ class PowerTranz {
      * 
      * @return array
     */
-	private function curl( $data, $api )
-	{
+    private function curl( $data, $api )
+    {
         $postData = (is_array($data)) ? json_encode($data) : $data;
-		
+
         // add API Segment iff necessary
         $url = self::getEndpoint() . $api;
 
@@ -493,11 +493,11 @@ class PowerTranz {
 
             return json_decode( $decoded );
         } catch (Exception $e) {
-           print( $e->getMessage());
+            print( $e->getMessage());
         }
 
         curl_close($ch);
-	}
+    }
 
     /**
      * Generate an Unique Identifier
