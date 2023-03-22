@@ -368,6 +368,25 @@ class PowerTranz {
     }
 
     /**
+     * Capture a specific amount of a transaction
+     * 
+     * @param array $transactionData
+     * 
+     * @return PowerTranzResponse
+     */
+    public function capture($transactionData)
+    {
+        self::$transactionData = [
+            'TransactionIdentifier' => $transactionData['transactionNumber'],
+            'TotalAmount' => $transactionData['amount'] ?? 0,
+        ];
+
+        $response = $this->curl(self::$transactionData, 'capture');
+
+        return new PowerTranzResponse( $response );
+    }
+
+    /**
      * Refund Transaction
      * 
      * @param array $transactionData
