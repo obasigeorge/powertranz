@@ -5,24 +5,24 @@
  */
 class PowerTranz {
 
-    protected $powerTranzId = "PWTId";
-    protected $powerTranzPwd = "PWTPwd";
-    protected $isTestMode = false;
-    protected $merchantResponseURL = "merchantResponseURL";
-    protected $orderNumberAutoGen = false;
-    protected $transactionNumberAutoGen = true;
-    protected $use3DS = true;
-    protected $checkFraud = false;
+    private $powerTranzId = "PWTId";
+    private $powerTranzPwd = "PWTPwd";
+    private $isTestMode = false;
+    private $merchantResponseURL = "merchantResponseURL";
+    private $orderNumberAutoGen = false;
+    private $transactionNumberAutoGen = true;
+    private $use3DS = true;
+    private $checkFraud = false;
 
     protected $platformPWTUAT = 'https://staging.ptranz.com/api/spi/';
     protected $platformPWTPROD = 'https://tbd.ptranz.com/api/spi/';
 
-    protected $transactionData = [];
-    protected $orderNumber = "orderNumber";
-    protected $orderNumberSet = false;
-    protected $transactionNumber = "transactionNumber";
-    protected $transactionNumberSet = false;
-    protected $orderNumberPrefix = "PWT";
+    private $transactionData = [];
+    private $orderNumber = "orderNumber";
+    private $orderNumberSet = false;
+    private $transactionNumber = "transactionNumber";
+    private $transactionNumberSet = false;
+    private $orderNumberPrefix = "PWT";
 
     const DEFAULT_TRANSACTION_CURRENCY = "780";
 
@@ -35,12 +35,12 @@ class PowerTranz {
      */
     public function setPWTId($id)
     {
-        self::$powerTranzId = $id;
+        $this->powerTranzId = $id;
     }
 
     public function getPWTId()
     {
-        return self::$powerTranzId;
+        return $this->powerTranzId;
     }
 
     /**
@@ -50,12 +50,12 @@ class PowerTranz {
      */
     public function setPWTPwd($pwd)
     {
-        self::$powerTranzPwd = $pwd;
+        $this->powerTranzPwd = $pwd;
     }
 
     public function getPWTPwd()
     {
-        return self::$powerTranzPwd;
+        return $this->powerTranzPwd;
     }
 
     /**
@@ -65,12 +65,12 @@ class PowerTranz {
      */
     public function setTestMode($mode = false)
     {
-        self::$isTestMode = $mode;
+        $this->isTestMode = $mode;
     }
 
     public function getTestMode()
     {
-        return self::$isTestMode;
+        return $this->isTestMode;
     }
 
     /**
@@ -80,7 +80,7 @@ class PowerTranz {
      */
     public function set3DSMode($mode = true)
     {
-        self::$use3DS = $mode;
+        $this->use3DS = $mode;
     }
 
     /**
@@ -90,12 +90,12 @@ class PowerTranz {
      */
     public function setFraudCheckMode($mode = true)
     {
-        self::$checkFraud = $mode;
+        $this->checkFraud = $mode;
     }
 
     public function getEndpoint()
     {
-        return (self::getTestMode()) ? self::$platformPWTUAT : self::$platformPWTPROD;
+        return ($this->getTestMode()) ? $this->platformPWTUAT : $this->platformPWTPROD;
     }
 
     /**
@@ -105,7 +105,7 @@ class PowerTranz {
      */
     public function setMerchantResponseURL($url)
     {
-        self::$merchantResponseURL = $url;
+        $this->merchantResponseURL = $url;
     }
 
     /**
@@ -115,7 +115,7 @@ class PowerTranz {
      */
     public function getMerchantResponseURL()
     {
-        return self::$merchantResponseURL;
+        return $this->merchantResponseURL;
     }
 
     /**
@@ -125,7 +125,7 @@ class PowerTranz {
      */
     public function setOrderNumberAutoGen($auto = false)
     {
-        self::$orderNumberAutoGen = $auto;
+        $this->orderNumberAutoGen = $auto;
     }
 
     /**
@@ -135,12 +135,12 @@ class PowerTranz {
      */
     public function setOrderNumberPrefix($prefix)
     {
-        self::$orderNumberPrefix = $prefix;
+        $this->orderNumberPrefix = $prefix;
     }
 
     public function getOrderNumberPrefix()
     {
-        return self::$orderNumberPrefix;
+        return $this->orderNumberPrefix;
     }
 
     /**
@@ -151,7 +151,7 @@ class PowerTranz {
      */
     public function setOrderNumber($num)
     {
-        self::$orderNumber = $num;
+        $this->orderNumber = $num;
     }
 
     /**
@@ -161,10 +161,10 @@ class PowerTranz {
      */
     public function getOrderNumber()
     {
-        if (self::$orderNumberAutoGen && !self::$orderNumberSet)
-            self::setOrderNumber ("{$this->getOrderNumberPrefix()}{$this->guidv4()}");
+        if ($this->orderNumberAutoGen && !$this->orderNumberSet)
+            $this->setOrderNumber ("{$this->getOrderNumberPrefix()}{$this->guidv4()}");
 
-        return self::$orderNumber;
+        return $this->orderNumber;
     }
 
     /**
@@ -175,7 +175,7 @@ class PowerTranz {
      */
     public function setTransactionNumberAutoGen($auto = true)
     {
-        self::$orderNumberAutoGen = $auto;
+        $this->orderNumberAutoGen = $auto;
     }
 
     /**
@@ -186,8 +186,8 @@ class PowerTranz {
      */
     public function setTransactionNumber($num) 
     {
-        self::$transactionNumber = $num;
-        self::$transactionNumberSet = true;
+        $this->transactionNumber = $num;
+        $this->transactionNumberSet = true;
     }
 
     /**
@@ -197,10 +197,10 @@ class PowerTranz {
      */
     public function getTransactionNumber()
     {
-        if (self::$transactionNumberAutoGen && !self::$transactionNumberSet)
-            self::setTransactionNumber("{$this->guidv4()}");
+        if ($this->transactionNumberAutoGen && !$this->transactionNumberSet)
+            $this->setTransactionNumber("{$this->guidv4()}");
         
-        return  self::$transactionNumber;
+        return $this->transactionNumber;
     }
 
     /**
@@ -212,19 +212,19 @@ class PowerTranz {
      */
     public function authorize($transactionData)
     {
-        self::setData($transactionData);
+        $this->setData($transactionData);
 
         $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
         $holder = sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
 
-        self::$transactionData['Source'] = [
+        $this->transactionData['Source'] = [
             'CardPan' => CreditCard::number($transactionData['card']['number']),
             'CardCvv' => $transactionData['card']['cvv'],
             'CardExpiration' => $expiry,
             'CardholderName' => $holder,
         ];
 
-        $response = self::curl(self::$transactionData, 'auth');
+        $response = self::curl($this->transactionData, 'auth');
 
         return new PowerTranzResponse( $response );
     }
@@ -238,21 +238,21 @@ class PowerTranz {
      */
     public function authorizeWithToken($transactionData)
     {
-        self::setData($transactionData);
+        $this->setData($transactionData);
 
         $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
         $holder = sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
 
-        self::$transactionData['Tokenize'] = true;
+        $this->transactionData['Tokenize'] = true;
 
-        self::$transactionData['Source'] = [
+        $this->transactionData['Source'] = [
             'Token' => $transactionData['card']['number'],
             'CardCvv' => $transactionData['card']['cvv'],
             'CardExpiration' => $expiry,
             'CardholderName' => $holder,
         ];
 
-        $response = self::curl(self::$transactionData, 'auth');
+        $response = $this->curl($this->transactionData, 'auth');
 
         return new PowerTranzResponse( $response );
     }
@@ -266,14 +266,14 @@ class PowerTranz {
      */
     public function authorizeWithSentryToken($transactionData)
     {
-        self::setData($transactionData);
+        $this->setData($transactionData);
 
         $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
         $holder = sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
 
-        self::$transactionData['Tokenize'] = true;
+        $this->transactionData['Tokenize'] = true;
 
-        self::$transactionData['Source'] = [
+        $this->transactionData['Source'] = [
             'Token' => $transactionData['card']['number'],
             'TokenType' => 'PG2',
             'CardCvv' => $transactionData['card']['cvv'],
@@ -281,7 +281,7 @@ class PowerTranz {
             'CardholderName' => $holder,
         ];
 
-        $response = self::curl(self::$transactionData, 'auth');
+        $response = $this->curl($this->transactionData, 'auth');
 
         return new PowerTranzResponse( $response );
     }
@@ -297,14 +297,14 @@ class PowerTranz {
      */
     public function getHostedPage($transactionData, $pageSet, $pageName)
     {
-        self::setData($transactionData);
+        $this->setData($transactionData);
 
-        self::$transactionData['ExtendedData']['HostedPage'] = [
+        $this->transactionData['ExtendedData']['HostedPage'] = [
             'PageSet' => $pageSet,
             'PageName' => $pageName,
         ];
 
-        $response = self::curl(self::$transactionData, 'auth');
+        $response = $this->curl($this->transactionData, 'auth');
 
         return new PowerTranzResponse( $response );
     }
@@ -328,7 +328,7 @@ class PowerTranz {
      */
     public function purchase($spitoken)
     {
-        $response = self::curl($spitoken, 'payment');
+        $response = $this->curl($spitoken, 'payment');
 
         return new PowerTranzResponse( $response );
     }
@@ -345,18 +345,18 @@ class PowerTranz {
         $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
         $holder = sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
 
-        self::setData($transactionData);
+        $this->setData($transactionData);
 
-        self::$transactionData['Tokenize'] = true;
-        self::$transactionData['ThreeDSecure'] = false;
-        self::$transactionData['Source'] = [
+        $this->transactionData['Tokenize'] = true;
+        $this->transactionData['ThreeDSecure'] = false;
+        $this->transactionData['Source'] = [
             'CardPan' => CreditCard::number($transactionData['card']['number']),
             'CardCvv' => $transactionData['card']['cvv'],
             'CardExpiration' => $expiry,
             'CardholderName' => $holder,
         ];
 
-        $response = $this->curl(self::$transactionData, 'riskmgmt');
+        $response = $this->curl($this->transactionData, 'riskmgmt');
 
         return new PowerTranzResponse( $response );
     }
@@ -370,7 +370,7 @@ class PowerTranz {
      */
     public function void($transactionNumber)
     {
-        self::$transactionData = [
+        $this->transactionData = [
             'TransactionIdentifier' => $transactionNumber,
             'ExternalIdentifier' => 'null',
             'TerminalCode' => '',
@@ -378,7 +378,7 @@ class PowerTranz {
             'AutoReversal' => false,
         ];
 
-        $response = $this->curl(self::$transactionData, 'void');
+        $response = $this->curl($this->transactionData, 'void');
 
         return new PowerTranzResponse( $response );
     }
@@ -392,12 +392,12 @@ class PowerTranz {
      */
     public function capture($transactionData)
     {
-        self::$transactionData = [
+        $this->transactionData = [
             'TransactionIdentifier' => $transactionData['transactionNumber'],
             'TotalAmount' => $transactionData['amount'] ?? 0,
         ];
 
-        $response = $this->curl(self::$transactionData, 'capture');
+        $response = $this->curl($this->transactionData, 'capture');
 
         return new PowerTranzResponse( $response );
     }
@@ -411,13 +411,13 @@ class PowerTranz {
      */
     public function refund($transactionData)
     {
-        self::$transactionData = [
+        $this->transactionData = [
             'TransactionIdentifier' => $transactionData['transactionNumber'],
             'Refund' => true,
             'TotalAmount' => $transactionData['amount'] ?? 0,
         ];
 
-        $response = $this->curl(self::$transactionData, 'refund');
+        $response = $this->curl($this->transactionData, 'refund');
 
         return new PowerTranzResponse( $response );
     }
@@ -429,14 +429,14 @@ class PowerTranz {
      */
     private function setData( $data )
     {
-        self::$transactionData = [
-            'TransactionIdentifier' => self::getTransactionNumber(),
+        $this->transactionData = [
+            'TransactionIdentifier' => $this->getTransactionNumber(),
             'TotalAmount' => $data['amount'] ?? 0,
             'CurrencyCode' => $data['currency'] ?? self::DEFAULT_TRANSACTION_CURRENCY,
-            'ThreeDSecure' => self::$use3DS,
-            'FraudCheck' => self::$checkFraud,
+            'ThreeDSecure' => $this->use3DS,
+            'FraudCheck' => $this->checkFraud,
             'Source' => [],
-            'OrderIdentifier' => self::getOrderNumber(),
+            'OrderIdentifier' => $this->getOrderNumber(),
             'BillingAddress' => [
                 'FirstName' => $data['card']['firstName'] ?? '',
                 'LastName' => $data['card']['LastName'] ?? '',
@@ -451,7 +451,7 @@ class PowerTranz {
             ],
             'AddressMatch' => $data['AddressMatch'] ?? false, 
             'ExtendedData' => [
-                'MerchantResponseUrl' => self::getMerchantResponseURL(),
+                'MerchantResponseUrl' => $this->getMerchantResponseURL(),
             ],
         ];
     }
@@ -469,7 +469,7 @@ class PowerTranz {
         $postData = (is_array($data)) ? json_encode($data) : $data;
 
         // add API Segment iff necessary
-        $url = self::getEndpoint() . $api;
+        $url = $this->getEndpoint() . $api;
 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -482,8 +482,8 @@ class PowerTranz {
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json; charset=utf-8',
             'Content-Length: ' . strlen($postData),
-            'PowerTranz-PowerTranzId: ' . self::getPWTId(),
-            'PowerTranz-PowerTranzPassword: ' . self::getPWTPwd(),
+            'PowerTranz-PowerTranzId: ' . $this->getPWTId(),
+            'PowerTranz-PowerTranzPassword: ' . $this->getPWTPwd(),
             ]
         );
 
@@ -546,7 +546,7 @@ class PowerTranzResponse {
      */
     public function __construct($data)
     {
-        self::$transactionData = $data;
+        $this->transactionData = $data;
     }
 
     /**
@@ -556,7 +556,7 @@ class PowerTranzResponse {
      */
     public function isRedirect()
     {
-        return isset(self::$transactionData['RedirectData']) ? true : false;
+        return isset($this->transactionData['RedirectData']) ? true : false;
     }
 
     /**
@@ -566,7 +566,7 @@ class PowerTranzResponse {
      */
     public function redirect()
     {
-        return self::$transactionData['RedirectData'];
+        return $this->transactionData['RedirectData'];
     }
 
     /**
@@ -576,7 +576,7 @@ class PowerTranzResponse {
      */
     public function getCode()
     {
-        return self::$transactionData['IsoResponseCode'] ?? '';
+        return $this->transactionData['IsoResponseCode'] ?? '';
     }
 
     /**
@@ -586,7 +586,7 @@ class PowerTranzResponse {
      */
     public function getMessage()
     {
-        return self::$transactionData['ResponseMessage'] ?? '';
+        return $this->transactionData['ResponseMessage'] ?? '';
     }
 
     /**
@@ -606,7 +606,7 @@ class PowerTranzResponse {
      */
     public function getTransactionNumber()
     {
-        return self::$transactionData['TransactionIdentifier'] ?? '';
+        return $this->transactionData['TransactionIdentifier'] ?? '';
     }
 
     /**
@@ -616,7 +616,7 @@ class PowerTranzResponse {
      */
     public function getOrderNumber()
     {
-        return self::$transactionData['OrderIdentifier'] ?? '';
+        return $this->transactionData['OrderIdentifier'] ?? '';
     }
 
     /**
@@ -626,7 +626,7 @@ class PowerTranzResponse {
      */
     public function getSpiToken()
     {
-        return self::$transactionData['SpiToken'] ?? '';
+        return $this->transactionData['SpiToken'] ?? '';
     }
 
     /**
@@ -634,7 +634,7 @@ class PowerTranzResponse {
      */
     public function isSuccessful()
     {
-        return (intval(self::$transactionData['ResponseCode']) === 1) ? true : false;
+        return (intval($this->transactionData['ResponseCode']) === 1) ? true : false;
     }
 }
 
