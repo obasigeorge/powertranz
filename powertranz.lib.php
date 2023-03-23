@@ -215,7 +215,7 @@ class PowerTranz {
         $this->setData($transactionData);
 
         $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
-        $holder = sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
+        $holder = $transactionData['card']['name'] ?? sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
 
         $this->transactionData['Source'] = [
             'CardPan' => CreditCard::number($transactionData['card']['number']),
@@ -241,7 +241,7 @@ class PowerTranz {
         $this->setData($transactionData);
 
         $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
-        $holder = sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
+        $holder = $transactionData['card']['name'] ?? sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
 
         $this->transactionData['Tokenize'] = true;
 
@@ -269,7 +269,7 @@ class PowerTranz {
         $this->setData($transactionData);
 
         $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
-        $holder = sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
+        $holder = $transactionData['card']['name'] ?? sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
 
         $this->transactionData['Tokenize'] = true;
 
@@ -343,7 +343,7 @@ class PowerTranz {
     public function tokenize($transactionData)
     {
         $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
-        $holder = sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
+        $holder = $transactionData['card']['name'] ?? sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
 
         $this->setData($transactionData);
 
@@ -435,7 +435,6 @@ class PowerTranz {
             'CurrencyCode' => $data['currency'] ?? self::DEFAULT_TRANSACTION_CURRENCY,
             'ThreeDSecure' => $this->use3DS,
             'FraudCheck' => $this->checkFraud,
-            'Source' => [],
             'OrderIdentifier' => $this->getOrderNumber(),
             'BillingAddress' => [
                 'FirstName' => $data['card']['firstName'] ?? '',
@@ -461,29 +460,33 @@ class PowerTranz {
      * 
      * @param array|string $data
      * @param string $api
+     * @param string $method
      * 
      * @return array
     */
-    private function curl( $data, $api )
+    private function curl( $data, $api, $method = 'POST' )
     {
         $postData = (is_array($data)) ? json_encode($data) : $data;
 
         // add API Segment iff necessary
-        $url = $this->getEndpoint() . $api;
+        $url = "{$this->getEndpoint()}{$api}";
 
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLINFO_HEADER_OUT, true);
-        curl_setopt($ch, CURLOPT_POST, true);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 150); 
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
         // Set HTTP Header for POST request 
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json; charset=utf-8',
             'Content-Length: ' . strlen($postData),
-            'PowerTranz-PowerTranzId: ' . $this->getPWTId(),
-            'PowerTranz-PowerTranzPassword: ' . $this->getPWTPwd(),
+            "PowerTranz-PowerTranzId: {$this->getPWTId()}",
+            "PowerTranz-PowerTranzPassword: {$this->getPWTPwd()}",
             ]
         );
 
