@@ -513,8 +513,7 @@ class PowerTranz {
      */
     private function guidv4($data = null) {
         // Generate 16 bytes (128 bits) of random data or use the data passed into the function.
-        if (!defined('PHP_VERSION_ID'))
-            $version = explode('.', PHP_VERSION_ID);
+        $version = explode('.', PHP_VERSION);
         
         if ($version[0] == 5)
             $data = $data ?? openssl_random_pseudo_bytes(16);
