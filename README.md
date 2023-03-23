@@ -24,7 +24,7 @@ try {
         'expiryYear' => '2025',  ///Optional
         'cvv' => '123',   //Optional
         'firstName' => 'Jonh', //Mandatory
-        'LastName' => 'Doe',   //Mandatory
+        'lastName' => 'Doe',   //Mandatory
         'email' => "johDoe@gmail.com", //optional
         'Address1' => 'main Avenue', // optional
         'Address2' => 'Main Avenue', // optional

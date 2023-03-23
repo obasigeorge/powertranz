@@ -438,7 +438,7 @@ class PowerTranz {
             'OrderIdentifier' => $this->getOrderNumber(),
             'BillingAddress' => [
                 'FirstName' => $data['card']['firstName'] ?? '',
-                'LastName' => $data['card']['LastName'] ?? '',
+                'LastName' => $data['card']['lastName'] ?? '',
                 'Line1' => $data['card']['Address1'] ?? '',
                 'Line2' => $data['card']['Address2'] ?? '',
                 'City' => $data['card']['City'] ?? '',
