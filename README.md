@@ -1,6 +1,8 @@
 ``` php
 
-require_once powertranz.lib.php;
+require_once 'autoload.php';
+
+use PowerTranz\PowerTranz;
 
 try {
     $gateway = new PowerTranz;
@@ -25,21 +27,35 @@ try {
         'cvv' => '123',   //Optional
         'firstName' => 'Jonh', //Mandatory
         'lastName' => 'Doe',   //Mandatory
-        'email' => "johDoe@gmail.com", //optional
-        'Address1' => 'main Avenue', // optional
-        'Address2' => 'Main Avenue', // optional
-        'City' => 'Marabella', // Mandatory
+        'email' => "johDoe@gmail.com", //Optional
+        'Address1' => 'main Avenue', //Optional
+        'Address2' => 'Main Avenue', //Optional
+        'City' => 'Marabella', //Mandatory
         'State' => '',   //Mandatory
         'Postcode' => '',  //Optional
         'Country' => '780',   //Mandatory 780
-        'Phone' => '',  // Optional
+        'Phone' => '',  //Optional
     ];
 
     $transactionData = [
         'card' => $cardData,
-        'currency' => '780',  // Mandatory  780
-        'amount' => '1.00',   // Mandatory
-        "AddressMatch" => "false"   //Optional  
+        'currency' => '780',  //Mandatory  780
+        'amount' => '1.00',   //Mandatory
+        "AddressMatch" => "false",  //Optional  
+        'validCardType' => [  //Optional
+            'visa',
+            'mastercard',
+			'american-express',
+			'diners-club',
+            'discover',
+			'jcb',
+			'unionpay',
+			'maestro',
+			'elo',
+			'mir',
+			'hiper',
+			'hipercard'
+        ]  
     ];
 
     $response = $gateway->authorize($transactionData);
@@ -48,7 +64,7 @@ try {
     if($response->isRedirect())
     {
 	    // Redirect to continue 3DS verification
-        $response->redirect();
+        print( $response->redirect() );
     }
     else 
     {
@@ -77,7 +93,7 @@ if($response->isSuccessful())
     // authorize was succussful, continue purchase the payment    
      $paymentResponse = $gateway->purchase($response->getSpiToken());
     
-    //return a JSON with response    //Aproveed = true means payment successfull 
+    //return a JSON with response    //Aproved = true means payment successfull 
     print_r($paymentResponse->getData());
     
 }

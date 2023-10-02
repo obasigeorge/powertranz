@@ -1,0 +1,28 @@
+{
+    "name": "obasigeorge/powertranz",
+    "description": "A PHP package to perform transactions against PowerTranz Payment Gateway",
+    "keywords": [
+        "php",
+        "powertranz"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Obasi Adande George",
+            "email": "oageorge@obasigeorge.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4"
+    },
+    "autoload": {
+        "psr-4" : {
+            "PowerTranz\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4" : {
+            "PowerTranz\\": "src/"
+        }
+    }
+}

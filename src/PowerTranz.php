@@ -1,32 +1,38 @@
 <?php
-/**
- * @author Obasi Adande George
- * @copyright (c) 2023 Obasi Adande George
- */
-class PowerTranz {
 
-    private $powerTranzId = "PWTId";
-    private $powerTranzPwd = "PWTPwd";
+namespace PowerTranz;
+
+use PowerTranz\Exception;
+use PowerTranz\Support;
+use PowerTranz\Message;
+use PowerTranz\Interfaces\PowerTranzInterface;
+
+class PowerTranz implements PowerTranzInterface {
+
+    private $powerTranzId = NULL;
+    private $powerTranzPwd = NULL;
     private $isTestMode = false;
-    private $merchantResponseURL = "merchantResponseURL";
+    private $merchantResponseURL = NULL;
     private $orderNumberAutoGen = false;
     private $transactionNumberAutoGen = true;
     private $use3DS = true;
     private $checkFraud = false;
 
-    protected $platformPWTUAT = 'https://staging.ptranz.com/api/spi/';
-    protected $platformPWTPROD = 'https://tbd.ptranz.com/api/spi/';
-
     private $transactionData = [];
-    private $orderNumber = "orderNumber";
+    private $orderNumber = NULL;
     private $orderNumberSet = false;
-    private $transactionNumber = "transactionNumber";
+    private $transactionNumber = NULL;
     private $transactionNumberSet = false;
-    private $orderNumberPrefix = "PWT";
+    private $orderNumberPrefix = NULL;
 
-    const DEFAULT_TRANSACTION_CURRENCY = "780";
+    private $cardValidator = NULL;
 
     public function __construct() {}
+
+    public function getName()
+    {
+        return Support\Constants::DRIVER_NAME;
+    }
 
     /**
      * Set PowerTranz Id
@@ -40,7 +46,7 @@ class PowerTranz {
 
     public function getPWTId()
     {
-        return $this->powerTranzId;
+        return $this->powerTranzId ?? Support\Constants::CONFIG_KEY_PWTID;
     }
 
     /**
@@ -55,7 +61,7 @@ class PowerTranz {
 
     public function getPWTPwd()
     {
-        return $this->powerTranzPwd;
+        return $this->powerTranzPwd ?? Support\Constants::CONFIG_KEY_PWTPWD;
     }
 
     /**
@@ -66,11 +72,6 @@ class PowerTranz {
     public function setTestMode($mode = false)
     {
         $this->isTestMode = $mode;
-    }
-
-    public function getTestMode()
-    {
-        return $this->isTestMode;
     }
 
     /**
@@ -95,7 +96,7 @@ class PowerTranz {
 
     public function getEndpoint()
     {
-        return ($this->getTestMode()) ? $this->platformPWTUAT : $this->platformPWTPROD;
+        return ($this->isTestMode) ? Support\Constants::PLATFORM_PWT_UAT : Support\Constants::PLATFORM_PWT_PROD;
     }
 
     /**
@@ -115,7 +116,7 @@ class PowerTranz {
      */
     public function getMerchantResponseURL()
     {
-        return $this->merchantResponseURL;
+        return $this->merchantResponseURL ?? Support\Constants::CONFIG_KEY_MERCHANT_RESPONSE_URL;
     }
 
     /**
@@ -140,7 +141,7 @@ class PowerTranz {
 
     public function getOrderNumberPrefix()
     {
-        return $this->orderNumberPrefix;
+        return $this->orderNumberPrefix ?? Support\Constants::GATEWAY_ORDER_IDENTIFIER_PREFIX;
     }
 
     /**
@@ -152,6 +153,7 @@ class PowerTranz {
     public function setOrderNumber($num)
     {
         $this->orderNumber = $num;
+        $this->orderNumberSet = true;
     }
 
     /**
@@ -212,21 +214,23 @@ class PowerTranz {
      */
     public function authorize($transactionData)
     {
+        $this->validate($transactionData);
+
         $this->setData($transactionData);
 
         $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
-        $holder = $transactionData['card']['name'] ?? sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
+        $holder = $transactionData['card']['name'] ?? sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['lastName']);
 
         $this->transactionData['Source'] = [
-            'CardPan' => CreditCard::number($transactionData['card']['number']),
+            'CardPan' => Support\CreditCard::number($transactionData['card']['number']),
             'CardCvv' => $transactionData['card']['cvv'],
             'CardExpiration' => $expiry,
             'CardholderName' => $holder,
         ];
 
-        $response = self::curl($this->transactionData, 'auth');
+        $response = $this->curl($this->transactionData, 'spi/auth');
 
-        return new PowerTranzResponse( $response );
+        return new Message\Authorize3DSResponse( $response );
     }
 
     /**
@@ -241,7 +245,7 @@ class PowerTranz {
         $this->setData($transactionData);
 
         $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
-        $holder = $transactionData['card']['name'] ?? sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
+        $holder = $transactionData['card']['name'] ?? sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['lastName']);
 
         $this->transactionData['Tokenize'] = true;
 
@@ -252,9 +256,9 @@ class PowerTranz {
             'CardholderName' => $holder,
         ];
 
-        $response = $this->curl($this->transactionData, 'auth');
+        $response = $this->curl($this->transactionData, 'spi/auth');
 
-        return new PowerTranzResponse( $response );
+        return new Message\Authorize3DSResponse( $response );
     }
 
     /**
@@ -281,9 +285,9 @@ class PowerTranz {
             'CardholderName' => $holder,
         ];
 
-        $response = $this->curl($this->transactionData, 'auth');
+        $response = $this->curl($this->transactionData, 'spi/auth');
 
-        return new PowerTranzResponse( $response );
+        return new Message\Authorize3DSResponse( $response );
     }
 
     /**
@@ -293,7 +297,7 @@ class PowerTranz {
      * @param string $pageSet
      * @param string $pageName
      * 
-     * @return PowerTranzResponse
+     * @return HostedPageResponse
      */
     public function getHostedPage($transactionData, $pageSet, $pageName)
     {
@@ -304,9 +308,9 @@ class PowerTranz {
             'PageName' => $pageName,
         ];
 
-        $response = $this->curl($this->transactionData, 'auth');
+        $response = $this->curl($this->transactionData, 'spi/auth');
 
-        return new PowerTranzResponse( $response );
+        return new Message\HostedPageResponse( $response );
     }
 
     /**
@@ -316,7 +320,7 @@ class PowerTranz {
     {
         // to-do
         // validate data response from callback
-        return new PowerTranzResponse( $data );
+        return new Message\ThreeDSResponse( json_decode($data['Response']) );
     }
 
     /**
@@ -328,9 +332,9 @@ class PowerTranz {
      */
     public function purchase($spitoken)
     {
-        $response = $this->curl($spitoken, 'payment');
+        $response = $this->curl($spitoken, 'spi/payment');
 
-        return new PowerTranzResponse( $response );
+        return new Message\GenericResponse( $response );
     }
 
     /**
@@ -342,6 +346,8 @@ class PowerTranz {
      */
     public function tokenize($transactionData)
     {
+        $this->validate($transactionData);
+        
         $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
         $holder = $transactionData['card']['name'] ?? sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
 
@@ -350,7 +356,7 @@ class PowerTranz {
         $this->transactionData['Tokenize'] = true;
         $this->transactionData['ThreeDSecure'] = false;
         $this->transactionData['Source'] = [
-            'CardPan' => CreditCard::number($transactionData['card']['number']),
+            'CardPan' => Support\CreditCard::number($transactionData['card']['number']),
             'CardCvv' => $transactionData['card']['cvv'],
             'CardExpiration' => $expiry,
             'CardholderName' => $holder,
@@ -358,7 +364,7 @@ class PowerTranz {
 
         $response = $this->curl($this->transactionData, 'riskmgmt');
 
-        return new PowerTranzResponse( $response );
+        return new Message\GenericResponse( $response );
     }
 
     /**
@@ -380,7 +386,7 @@ class PowerTranz {
 
         $response = $this->curl($this->transactionData, 'void');
 
-        return new PowerTranzResponse( $response );
+        return new Message\GenericResponse( $response );
     }
 
     /**
@@ -399,7 +405,7 @@ class PowerTranz {
 
         $response = $this->curl($this->transactionData, 'capture');
 
-        return new PowerTranzResponse( $response );
+        return new Message\GenericResponse( $response );
     }
 
     /**
@@ -419,7 +425,20 @@ class PowerTranz {
 
         $response = $this->curl($this->transactionData, 'refund');
 
-        return new PowerTranzResponse( $response );
+        return new Message\GenericResponse( $response );
+    }
+
+    /**
+     * Validate credit card
+     * 
+     * @param array $data
+     */
+    private function validate( $data )
+    {
+        $this->cardValidator = isset($data['validCardType']) ? Support\CreditCardValidator::make($data['validCardType']) : Support\CreditCardValidator::make();
+
+        if (!$this->cardValidator->isValid($data['card']['number']))
+            throw new Exception\InvalidCreditCard();
     }
 
     /**
@@ -432,7 +451,7 @@ class PowerTranz {
         $this->transactionData = [
             'TransactionIdentifier' => $this->getTransactionNumber(),
             'TotalAmount' => $data['amount'] ?? 0,
-            'CurrencyCode' => $data['currency'] ?? self::DEFAULT_TRANSACTION_CURRENCY,
+            'CurrencyCode' => $data['currency'] ?? Support\Constants::CONFIG_COUNTRY_CURRENCY_CODE,
             'ThreeDSecure' => $this->use3DS,
             'FraudCheck' => $this->checkFraud,
             'OrderIdentifier' => $this->getOrderNumber(),
@@ -474,7 +493,7 @@ class PowerTranz {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
         curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 150); 
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
@@ -494,13 +513,13 @@ class PowerTranz {
             $result = curl_exec($ch);
 
             if ($result === false)
-                throw new Exception('Curl error: ' . curl_error($ch));
-            
-            $decoded = urldecode($result);
-            $decoded = trim( $decoded );
+                throw new Exception\GatewayHTTPException('Gateway Communication error: ' . curl_error($ch));
 
-            return json_decode( $decoded );
-        } catch (Exception $e) {
+            $decoded = urldecode($result);
+            $decoded = trim($decoded);
+
+            return json_decode($decoded);
+        } catch (\Exception $e) {
             print( $e->getMessage());
         }
 
@@ -532,179 +551,5 @@ class PowerTranz {
     
         // Output the 36 character UUID.
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
-    }
-}
-
-class PowerTranzResponse {
-
-    private $transactionData = [];
-
-    /**
-     * Power Tranz Response Constructor
-     * 
-     * @param array $data
-     * 
-     * @return PowerTranzResponse
-     */
-    public function __construct($data)
-    {
-        $this->transactionData = $data;
-    }
-
-    /**
-     * Check if Redirect is Required
-     * 
-     * @return boolean
-     */
-    public function isRedirect()
-    {
-        return isset($this->transactionData['RedirectData']) ? true : false;
-    }
-
-    /**
-     * Redirect Data
-     * 
-     * @return string
-     */
-    public function redirect()
-    {
-        return $this->transactionData['RedirectData'];
-    }
-
-    /**
-     * Get Response Code
-     * 
-     * @return string
-     */
-    public function getCode()
-    {
-        return $this->transactionData['IsoResponseCode'] ?? '';
-    }
-
-    /**
-     * Get Response Message
-     * 
-     * @return string
-     */
-    public function getMessage()
-    {
-        return $this->transactionData['ResponseMessage'] ?? '';
-    }
-
-    /**
-     * Get Entire Transaction Response
-     * 
-     * @return array
-     */
-    public function getData()
-    {
-        return json_encode(self::$transactionData);
-    }
-
-    /**
-     * Get Transaction Number
-     * 
-     * @return string
-     */
-    public function getTransactionNumber()
-    {
-        return $this->transactionData['TransactionIdentifier'] ?? '';
-    }
-
-    /**
-     * Get Order Number
-     * 
-     * @return string
-     */
-    public function getOrderNumber()
-    {
-        return $this->transactionData['OrderIdentifier'] ?? '';
-    }
-
-    /**
-     * Get SPI Token
-     * 
-     * @return string
-     */
-    public function getSpiToken()
-    {
-        return $this->transactionData['SpiToken'] ?? '';
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isSuccessful()
-    {
-        return (intval($this->transactionData['ResponseCode']) === 1) ? true : false;
-    }
-}
-
-
-class CreditCard 
-{
-    /**
-     * Replaces all but the first and last four digits with x's in the given credit card number
-     * 
-     * @param int|string $cc The credit card number to mask
-     *   
-     * @return string The masked credit card number
-     */
-    public static function mask( $cc )
-    {
-        // replace all digits with X except for the first and last four.
-        $cc = preg_replace('/(?!^.?)[0-9](?!(.){0,3}$)/', 'X', $cc);
-        
-        // Return the masked Credit Card #
-        return $cc;
-    }
-
-    /**
-     * Add dashes to a credit card number.
-     *
-     * @param int|string $cc The credit card number to format with dashes.
-     * 
-     * @return string The credit card with dashes.
-     */
-    public static function format( $cc )
-    {
-        // Clean out extra data that might be in the cc
-        $cc = str_replace(array('-',' '),'',$cc);
-
-        // Get the CC Length
-        $cc_length = strlen($cc);
-
-        // Initialize the new credit card to contian the last four digits
-        $newCreditCard = substr($cc,-4);
-
-        // Walk backwards through the credit card number and add a dash after every fourth digit
-        for ($i=$cc_length-5; $i>=0; $i--)
-        {
-            // If on the fourth character add a dash
-            if((($i+1)-$cc_length)%4 == 0){
-                $newCreditCard = '-'.$newCreditCard;
-            }
-            // Add the current character to the new credit card
-            $newCreditCard = $cc[$i].$newCreditCard;
-        }
-
-        // Return the formatted credit card number
-        return $newCreditCard;
-    }
-
-    /**
-     * Remove all non numeric characters from a credit card number
-     * 
-     * @param int|string $cc
-     * 
-     * @return int
-     */
-    public static function number( $cc )
-    {
-        // remove all non-numeric characters
-        preg_match_all('/([0-9])/', $cc, $matches);
-
-        // Return number 
-        return implode('', $matches[1]);
     }
 }
