@@ -45,16 +45,16 @@ try {
         'validCardType' => [  //Optional
             'visa',
             'mastercard',
-			'american-express',
-			'diners-club',
+            'american-express',
+            'diners-club',
             'discover',
-			'jcb',
-			'unionpay',
-			'maestro',
-			'elo',
-			'mir',
-			'hiper',
-			'hipercard'
+            'jcb',
+            'unionpay',
+            'maestro',
+            'elo',
+            'mir',
+            'hiper',
+            'hipercard'
         ]  
     ];
 
