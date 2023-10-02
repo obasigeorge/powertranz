@@ -80,7 +80,8 @@ try {
 Accept transaction response from PowerTranz.
 ```php
 $gateway = new PowerTranz;
-$gateway    
+$gateway 
+    ->setTestMode(true) // false to use productions links  , true to use test links 
     // Password is required to perform response signature verification
     ->setPWTId('xxxxxxxx')
     ->setPWTPwd('xxxxxxxx')
