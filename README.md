@@ -14,7 +14,6 @@ try {
         ->setMerchantResponseURL('https://localhost/accept-notification.php')
         // *** Autogen an order number  UUID V4
         ->setOrderNumberAutoGen(true);
-
         // Set Order Number Prefix - Default PWT
         // ->setOderNumberPrefix('some-string-of-chars')
         // Set Order Number
@@ -71,7 +70,7 @@ try {
 	    // 3DS transaction failed setup, show error reason.
         echo $response->getMessage();
     }
-} catch (Exception $e){
+} catch (\Exception $e){
     $e->getMessage();
 }
 ```
@@ -79,28 +78,45 @@ try {
 ***accept-notification.php***
 Accept transaction response from PowerTranz.
 ```php
-$gateway = new PowerTranz;
-$gateway 
-    ->setTestMode(true) // false to use productions links  , true to use test links 
-    // Password is required to perform response signature verification
-    ->setPWTId('xxxxxxxx')
-    ->setPWTPwd('xxxxxxxx')
-    
-// Signature verification is performed implicitly once the gateway was initialized with the password.
-$response = $gateway->acceptNotification($_POST);
+require_once 'autoload.php';
 
-if($response->isSuccessful())
-{       
-    // authorize was succussful, continue purchase the payment    
-     $paymentResponse = $gateway->purchase($response->getSpiToken());
-    
-    //return a JSON with response    //Aproved = true means payment successfull 
-    print_r($paymentResponse->getData());
-    
-}
-else 
-{
-    // Transaction failed
-    echo $response->getMessage();
+use PowerTranz\PowerTranz;
+
+try {
+    $gateway = new PowerTranz;
+    $gateway 
+        ->setTestMode(true) // false to use productions links  , true to use test links 
+        // Password is required to perform response signature verification
+        ->setPWTId('xxxxxxxx')
+        ->setPWTPwd('xxxxxxxx');
+        
+    // Signature verification is performed implicitly once the gateway was initialized with the password.
+    $response = $gateway->acceptNotification($_POST);
+
+    if($response->isSuccessful())
+    {       
+        // authorize was succussful, continue purchase the payment    
+        $paymentResponse = $gateway->purchase($response->getSpiToken());
+        
+        //return a JSON with response    //Aproved = true means payment successfull
+        if ($paymentResponse->isSuccessful()) {
+            $captureResponse = $gateway->capture($paymentResponse->getDataArray());
+
+            // debug
+            print_r($paymentResponse->getData());
+        }
+
+        // debug
+        print_r($paymentResponse->getData());
+        
+    }
+    else 
+    {
+        // Transaction failed
+        echo $response->getMessage();
+    }
+} catch (\Exception $e) {
+    // an error occurred, catch it an show something to the customer
+    $e->getMessage();
 }
 ```
