@@ -9,37 +9,38 @@ try {
     $gateway->setPWTId('88800371');
     $gateway->setPWTPwd('3UjKgQyo5SzmUZtwTkeYAbMFzyxKB9UfnuFgOSuk8VgdpTXq0wBzMy3');
     // **Required and must be https://
-    $gateway->setMerchantResponseURL('http://localhost:8000/accept-notification.php');
+    $gateway->setMerchantResponseURL('https://localhost-development.tstt.co.tt/example/accept-notification.php');
+    
     // *** Autogen an order number  UUID V4
     // $gateway->setOrderNumberAutoGen(true);
-
     // Set Order Number Prefix - Default PWT
-    // $gateway->setOrderNumberPrefix('some-string-of-chars')
+    $gateway->setOrderNumberPrefix('ESERVICE-');
+
     // Set Order Number
-    $gateway->setOrderNumber('ESERVICE-20230927000001');
+    // $gateway->setOrderNumber('ESERVICE-20230927000001');
 
     $cardData = [
-        'number' => '5100270000000023', //Optional
+        'number' => '4012010000020070', //Optional
         'expiryMonth' => '01', //Optional
         'expiryYear' => '2025',  ///Optional
         'cvv' => '123',   //Optional
         'firstName' => 'Jonh', //Mandatory
         'lastName' => 'Doe',   //Mandatory
-        'email' => "johDoe@gmail.com", // Optional
-        'Address1' => 'main Avenue', // Optional
-        'Address2' => 'Main Avenue', // Optional
-        'City' => 'Marabella', // Mandatory
+        'email' => "johDoe@gmail.com", //Optional
+        'Address1' => 'main Avenue', //Optional
+        'Address2' => 'Main Avenue', //Optional
+        'City' => 'Marabella', //Mandatory
         'State' => '',   //Mandatory
         'Postcode' => '',  //Optional
-        'Country' => '780',   // Mandatory 780
-        'Phone' => '',  // Optional
+        'Country' => '780',   //Mandatory 780
+        'Phone' => '',  //Optional
     ];
 
     $transactionData = [
         'card' => $cardData,
-        'currency' => '780',  // Mandatory  780
-        'amount' => '1.00',   // Mandatory
-        "AddressMatch" => "false",   // Optional  
+        'currency' => '780',  //Mandatory  780
+        'amount' => '10.00',   //Mandatory
+        "AddressMatch" => "false",   //Optional  
         "validCardType" => [
             'visa',
             'mastercard'

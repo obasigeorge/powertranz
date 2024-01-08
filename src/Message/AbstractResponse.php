@@ -25,7 +25,7 @@ abstract class AbstractResponse {
      */
     public function getResponseCode()
     {
-        return $this->transactionData->ResponseCode ?? '';
+        return $this->transactionData->RiskManagement->ThreeDSecure->ResponseCode ?? '';
     }
 
     /**
@@ -55,7 +55,7 @@ abstract class AbstractResponse {
      */
     public function getData()
     {
-        return json_encode(self::$transactionData);
+        return json_encode($this->transactionData);
     }
 
     /**
@@ -86,6 +86,16 @@ abstract class AbstractResponse {
     public function getSpiToken()
     {
         return $this->transactionData->SpiToken ?? '';
+    }
+
+    /**
+     * Get Authorization Code
+     * 
+     * @return string
+     */
+    public function getAuthorizationCode()
+    {
+        return $this->transactionData->AuthorizationCode ?? '';
     }
 
     /**
