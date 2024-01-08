@@ -164,7 +164,9 @@ class PowerTranz implements PowerTranzInterface {
     public function getOrderNumber()
     {
         if ($this->orderNumberAutoGen && !$this->orderNumberSet)
-            $this->setOrderNumber ("{$this->getOrderNumberPrefix()}{$this->guidv4()}");
+            $this->setOrderNumber("{$this->getOrderNumberPrefix()}{$this->guidv4()}");
+        if (!$this->orderNumberSet)
+            $this->setOrderNumber("{$this->getOrderNumberPrefix()}{$this->getTransactionNumber()}");
 
         return $this->orderNumber;
     }
@@ -210,7 +212,7 @@ class PowerTranz implements PowerTranzInterface {
      * 
      * @param array $transactionData
      * 
-     * @return PowerTranzResponse
+     * @return Authorize3DSResponse
      */
     public function authorize($transactionData)
     {
@@ -238,7 +240,7 @@ class PowerTranz implements PowerTranzInterface {
      * 
      * @param array $transactionData
      * 
-     * @return PowerTranzResponse
+     * @return Authorize3DSResponse
      */
     public function authorizeWithToken($transactionData)
     {
@@ -266,7 +268,7 @@ class PowerTranz implements PowerTranzInterface {
      * 
      * @param array $transactionData
      * 
-     * @return PowerTranzResponse
+     * @return Authorize3DSResponse
      */
     public function authorizeWithSentryToken($transactionData)
     {
@@ -314,7 +316,7 @@ class PowerTranz implements PowerTranzInterface {
     }
 
     /**
-     * @return PowerTranzResponse
+     * @return ThreeDSResponse
      */
     public function acceptNotification($data)
     {
@@ -328,13 +330,13 @@ class PowerTranz implements PowerTranzInterface {
      * 
      * @param string $spitoken
      * 
-     * @return PowerTranzResponse
+     * @return PurchaseResponse
      */
     public function purchase($spitoken)
     {
-        $response = $this->curl($spitoken, 'spi/payment');
+        $response = $this->curl("\"{$spitoken}\"", 'spi/payment', 'text/plain');
 
-        return new Message\GenericResponse( $response );
+        return new Message\PurchaseResponse( $response );
     }
 
     /**
@@ -438,7 +440,7 @@ class PowerTranz implements PowerTranzInterface {
         $this->cardValidator = isset($data['validCardType']) ? Support\CreditCardValidator::make($data['validCardType']) : Support\CreditCardValidator::make();
 
         if (!$this->cardValidator->isValid($data['card']['number']))
-            throw new Exception\InvalidCreditCard();
+            throw new Exception\InvalidCreditCard('Invalid Credit Card Number Supplied');
     }
 
     /**
@@ -469,6 +471,10 @@ class PowerTranz implements PowerTranzInterface {
             ],
             'AddressMatch' => $data['AddressMatch'] ?? false, 
             'ExtendedData' => [
+                'ThreeDSecure' => [
+                    'ChallengeWindowSize' => 4,
+                    'ChallengeIndicator' => '01',
+                ],
                 'MerchantResponseUrl' => $this->getMerchantResponseURL(),
             ],
         ];
@@ -483,7 +489,7 @@ class PowerTranz implements PowerTranzInterface {
      * 
      * @return array
     */
-    private function curl( $data, $api, $method = 'POST' )
+    private function curl( $data, $api, $accept = 'application/json', $method = 'POST' )
     {
         $postData = (is_array($data)) ? json_encode($data) : $data;
 
@@ -500,9 +506,10 @@ class PowerTranz implements PowerTranzInterface {
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
-        // Set HTTP Header for POST request 
+        // Set HTTP Header for request 
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json; charset=utf-8',
+            "Accept: {$accept}",
+            'Content-Type: application/json',
             'Content-Length: ' . strlen($postData),
             "PowerTranz-PowerTranzId: {$this->getPWTId()}",
             "PowerTranz-PowerTranzPassword: {$this->getPWTPwd()}",
@@ -512,15 +519,24 @@ class PowerTranz implements PowerTranzInterface {
         try {
             $result = curl_exec($ch);
 
-            if ($result === false)
-                throw new Exception\GatewayHTTPException('Gateway Communication error: ' . curl_error($ch));
+            if (!curl_errno($ch))
+            {
+                switch ($http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE))
+                {
+                    case 200: // OK
+                        break;
+                    default:
+                        throw new Exception\GatewayHTTPException("Gateway Communication error: ({$http_code})" . curl_error($ch));
+                        break;
+                }
+            }
 
             $decoded = urldecode($result);
             $decoded = trim($decoded);
 
             return json_decode($decoded);
         } catch (\Exception $e) {
-            print( $e->getMessage());
+            throw new Exception\GatewayHTTPException($e->getMessage());
         }
 
         curl_close($ch);
