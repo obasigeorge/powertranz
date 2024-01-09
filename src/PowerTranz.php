@@ -224,7 +224,7 @@ class PowerTranz implements PowerTranzInterface {
      */
     public function authorize($transactionData)
     {
-        $this->validate($transactionData);
+        $this->validateCreditCard($transactionData);
 
         $this->setData($transactionData);
 
@@ -356,7 +356,7 @@ class PowerTranz implements PowerTranzInterface {
      */
     public function tokenize($transactionData)
     {
-        $this->validate($transactionData);
+        $this->validateCreditCard($transactionData);
         
         $expiry = sprintf('%02d%02d', (strlen($transactionData['card']['expiryYear']) == 4) ? substr($transactionData['card']['expiryYear'], 2, 2) : $transactionData['card']['expiryYear'], $transactionData['card']['expiryMonth']);
         $holder = $transactionData['card']['name'] ?? sprintf('%s %s', $transactionData['card']['firstName'], $transactionData['card']['LastName']);
@@ -443,7 +443,7 @@ class PowerTranz implements PowerTranzInterface {
      * 
      * @param array $data
      */
-    private function validate( $data )
+    private function validateCreditCard( $data )
     {
         $this->cardValidator = isset($data['validCardType']) ? Support\CreditCardValidator::make($data['validCardType']) : Support\CreditCardValidator::make();
 
