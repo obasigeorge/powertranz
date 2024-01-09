@@ -75,6 +75,14 @@ class PowerTranz implements PowerTranzInterface {
     }
 
     /**
+     * Enable Test Mode
+     */
+    public function enableTestMode()
+    {
+        $this->setTestMode(true);
+    }
+
+    /**
      * Set 3DS Mode
      * 
      * @param boolean $mode
@@ -164,9 +172,9 @@ class PowerTranz implements PowerTranzInterface {
     public function getOrderNumber()
     {
         if ($this->orderNumberAutoGen && !$this->orderNumberSet)
-            $this->setOrderNumber("{$this->getOrderNumberPrefix()}{$this->guidv4()}");
+            $this->setOrderNumber("{$this->getOrderNumberPrefix()}-{$this->timestamp()}-{$this->guidv4()}");
         if (!$this->orderNumberSet)
-            $this->setOrderNumber("{$this->getOrderNumberPrefix()}{$this->getTransactionNumber()}");
+            $this->setOrderNumber("{$this->getOrderNumberPrefix()}-{$this->timestamp()}-{$this->getTransactionNumber()}");
 
         return $this->orderNumber;
     }
@@ -543,13 +551,30 @@ class PowerTranz implements PowerTranzInterface {
     }
 
     /**
+     * Generate timestamp
+     * 
+     * @param null
+     * 
+     * @return string
+     */
+    private function timestamp()
+    {
+        $utimestamp = microtime(true);
+        $timestamp = floor($utimestamp);
+        $milliseconds = round(($utimestamp - $timestamp) * 1000000);
+
+        return date(preg_replace('`(?<!\\\\)u`', $milliseconds, 'YmdHisu'), $timestamp);
+    }
+
+    /**
      * Generate an Unique Identifier
      * 
      * @param string|null $data
      * 
      * @return string
      */
-    private function guidv4($data = null) {
+    private function guidv4($data = null)
+    {
         // Generate 16 bytes (128 bits) of random data or use the data passed into the function.
         $version = explode('.', PHP_VERSION);
         
