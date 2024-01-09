@@ -493,6 +493,7 @@ class PowerTranz implements PowerTranzInterface {
      * 
      * @param array|string $data
      * @param string $api
+     * @param string $accept
      * @param string $method
      * 
      * @return array
