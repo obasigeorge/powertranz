@@ -49,6 +49,25 @@ abstract class AbstractResponse {
     }
 
     /**
+     * Get Error Message
+     * 
+     * @return array
+     */
+    public function getErrorMessages()
+    {
+        $errors = [];
+        if (isset($this->transactionData->Errors))
+        {
+            foreach ($this->transactionData->Errors as $error)
+            {
+                $errors[] = ['code' => $error->Code, 'message' => $error->Message];
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
      * Get Entire Transaction Response
      * 
      * @return array
