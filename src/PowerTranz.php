@@ -461,7 +461,7 @@ class PowerTranz implements PowerTranzInterface {
         $this->transactionData = [
             'TransactionIdentifier' => $this->getTransactionNumber(),
             'TotalAmount' => $data['amount'] ?? 0,
-            'CurrencyCode' => $data['currency'] ?? Support\Constants::CONFIG_COUNTRY_CURRENCY_CODE,
+            'CurrencyCode' => Support\IsoCodes::getCurrencyCode($data['currency']) ?? Support\Constants::CONFIG_CURRENCY_CODE,
             'ThreeDSecure' => $this->use3DS,
             'FraudCheck' => $this->checkFraud,
             'OrderIdentifier' => $this->getOrderNumber(),
@@ -473,7 +473,7 @@ class PowerTranz implements PowerTranzInterface {
                 'City' => $data['card']['City'] ?? '',
                 'State' => $data['card']['State'] ?? '',
                 'PostalCode' => $data['card']['Postcode'] ?? '',
-                'CountryCode' => $data['card']['Country'] ?? '',
+                'CountryCode' => Support\IsoCodes::getCountryCode($data['card']['Country']) ?? Support\Constants::CONFIG_COUNTRY_CODE,
                 'EmailAddress' => $data['card']['email'] ?? '',
                 'PhoneNumber' => $data['card']['Phone'] ?? '',
             ],
