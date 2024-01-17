@@ -18,9 +18,9 @@ class Constants
     const GATEWAY_ORDER_IDENTIFIER_AUTOGEN = 'orderNumberAutoGen';
     const GATEWAY_ORDER_IDENTIFIER = 'orderIdentifier';
 
-
     const CONFIG_KEY_PWTCUR = 'facCurrencyList';
 
     const CONFIG_BILLING_STATE_CODE = 'MB';
-    const CONFIG_COUNTRY_CURRENCY_CODE = '780';
+    const CONFIG_CURRENCY_CODE = '780';
+    const CONFIG_COUNTRY_CODE = '780';
 }
