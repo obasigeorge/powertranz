@@ -32,13 +32,13 @@ try {
         'City' => 'Marabella', //Mandatory
         'State' => '',   //Mandatory
         'Postcode' => '',  //Optional
-        'Country' => '780',   //Mandatory 780
+        'Country' => '780',   //Mandatory 780|TT|TTO
         'Phone' => '',  //Optional
     ];
 
     $transactionData = [
         'card' => $cardData,
-        'currency' => '780',  //Mandatory  780
+        'currency' => '780',  //Mandatory  780|TTD
         'amount' => '1.00',   //Mandatory
         "AddressMatch" => "false",  //Optional  
         'validCardType' => [  //Optional
@@ -104,13 +104,13 @@ try {
         'City' => 'Marabella', //Mandatory
         'State' => '',   //Mandatory
         'Postcode' => '',  //Optional
-        'Country' => '780',   //Mandatory 780
+        'Country' => '780',   //Mandatory 780|TT|TTO
         'Phone' => '',  //Optional
     ];
 
     $transactionData = [
         'card' => $cardData,
-        'currency' => '780',  //Mandatory  780
+        'currency' => '780',  //Mandatory  780|TTD
         'amount' => '1.00',   //Mandatory
     ];
 
