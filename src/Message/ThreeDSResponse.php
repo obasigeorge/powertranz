@@ -11,7 +11,7 @@ class ThreeDSResponse extends AbstractResponse {
     {
         if (in_array($this->transactionData->IsoResponseCode, ['3D0', '3D1']))
         {
-            if (in_array($this->transactionData->RiskManagement->ThreeDSecure->Eci, ['01','02','05','06'])) {
+            if (isset($this->transactionData->RiskManagement->ThreeDSecure->Eci) && in_array($this->transactionData->RiskManagement->ThreeDSecure->Eci, ['01','02','05','06'])) {
                 return isset($this->transactionData->SpiToken) ? true : false;
             } else {
                 return false;
